@@ -7,25 +7,33 @@ A small mock Terraform repository for testing the Product Forge
 
 ```text
 terraform-iam-form-test/
+├── modules/
+│   └── iam/
+│       ├── versions.tf
+│       ├── variables.tf
+│       ├── main.tf
+│       └── outputs.tf
 ├── dev/
 │   ├── providers.tf
 │   ├── variables.tf
-│   ├── folder_iam.tf
-│   ├── project_iam.tf
+│   ├── iam.tf
 │   ├── outputs.tf
 │   └── terraform.tfvars
 ├── test/
 │   ├── providers.tf
 │   ├── variables.tf
-│   ├── folder_iam.tf
-│   ├── project_iam.tf
+│   ├── iam.tf
 │   ├── outputs.tf
 │   └── terraform.tfvars
 ├── .gitignore
 └── Makefile
 ```
 
-Each environment contains:
+The IAM functionality lives in the shared `modules/iam` module. Each environment
+(`dev/`, `test/`) calls that module and supplies environment-specific values via
+`terraform.tfvars`.
+
+Each environment provides:
 
 - One mock Google group assigned additive IAM roles at the folder level
 - One mock service account assigned additive IAM roles at the project level
@@ -34,9 +42,16 @@ Each environment contains:
 - No real credentials
 - No `terraform apply` automation
 
-## Existing IAM patterns
+## `modules/iam`
 
-### Folder-level group
+The shared IAM module manages additive Google Cloud IAM member bindings for a
+mock folder group and a mock project service account. Environments do not define
+IAM resources directly; they call this module and pass in environment-specific
+values from `terraform.tfvars`.
+
+### Resources
+
+**Folder-level group**
 
 ```hcl
 resource "google_folder_iam_member" "group_roles" {
@@ -48,7 +63,7 @@ resource "google_folder_iam_member" "group_roles" {
 }
 ```
 
-### Project-level service account
+**Project-level service account**
 
 ```hcl
 resource "google_project_iam_member" "service_account_roles" {
@@ -62,6 +77,57 @@ resource "google_project_iam_member" "service_account_roles" {
 
 These resources are additive IAM member resources. A workflow should preserve the
 existing patterns and must not convert them to authoritative IAM bindings.
+
+### Inputs
+
+| Name | Type | Description |
+|------|------|-------------|
+| `project_id` | `string` | Mock Google Cloud project ID |
+| `folder_id` | `string` | Mock Google Cloud folder resource name |
+| `group_email` | `string` | Google group receiving folder-level IAM roles |
+| `group_folder_roles` | `set(string)` | Folder-level roles assigned to the group |
+| `service_account_email` | `string` | Service account receiving project-level IAM roles |
+| `service_account_project_roles` | `set(string)` | Project-level roles assigned to the service account |
+
+### Outputs
+
+| Name | Description |
+|------|-------------|
+| `folder_group_assignments` | Map of folder-level role assignments for the group |
+| `project_service_account_assignments` | Map of project-level role assignments for the service account |
+
+Each environment re-exports these module outputs from its own `outputs.tf`.
+
+### Usage
+
+Each environment calls the module from `iam.tf`:
+
+```hcl
+module "iam" {
+  source = "../modules/iam"
+
+  project_id                    = var.project_id
+  folder_id                     = var.folder_id
+  group_email                   = var.group_email
+  group_folder_roles            = var.group_folder_roles
+  service_account_email         = var.service_account_email
+  service_account_project_roles = var.service_account_project_roles
+}
+```
+
+Environment outputs pass through the module results:
+
+```hcl
+output "folder_group_assignments" {
+  description = "Folder-level IAM assignments for the mock group."
+  value       = module.iam.folder_group_assignments
+}
+
+output "project_service_account_assignments" {
+  description = "Project-level IAM assignments for the mock service account."
+  value       = module.iam.project_service_account_assignments
+}
+```
 
 ## Mock assignments
 
