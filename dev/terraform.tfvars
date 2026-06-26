@@ -5,6 +5,7 @@ group_email = "dev-platform@example.com"
 
 group_folder_roles = [
   "roles/browser",
+  "roles/testing.test",
   "roles/logging.viewer",
   "roles/monitoring.viewer",
 ]
