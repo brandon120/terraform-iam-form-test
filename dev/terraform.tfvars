@@ -7,6 +7,7 @@ group_folder_roles = [
   "roles/browser",
   "roles/logging.viewer",
   "roles/monitoring.viewer",
+  "roles/editrole.test",
 ]
 
 service_account_email = "workflow-dev@mock-app-dev.iam.gserviceaccount.com"
