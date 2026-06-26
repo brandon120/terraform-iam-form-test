@@ -1,7 +1,7 @@
-resource "google_project_iam_member" "service_account_roles" {
-  for_each = var.service_account_project_roles
+module "project_service_account_roles" {
+  source = "../modules/project_iam_member"
 
-  project = var.project_id
-  role    = each.value
-  member  = "serviceAccount:${var.service_account_email}"
+  project_id = var.project_id
+  member     = "serviceAccount:${var.service_account_email}"
+  roles      = var.service_account_project_roles
 }
