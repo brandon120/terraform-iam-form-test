@@ -1,7 +1,7 @@
-resource "google_folder_iam_member" "group_roles" {
-  for_each = var.group_folder_roles
+module "folder_group_roles" {
+  source = "../modules/folder_iam_member"
 
-  folder = var.folder_id
-  role   = each.value
-  member = "group:${var.group_email}"
+  folder_id = var.folder_id
+  member    = "group:${var.group_email}"
+  roles     = var.group_folder_roles
 }

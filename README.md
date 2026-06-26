@@ -7,6 +7,15 @@ A small mock Terraform repository for testing the Product Forge
 
 ```text
 terraform-iam-form-test/
+├── modules/
+│   ├── folder_iam_member/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── project_iam_member/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
 ├── dev/
 │   ├── providers.tf
 │   ├── variables.tf
@@ -39,24 +48,24 @@ Each environment contains:
 ### Folder-level group
 
 ```hcl
-resource "google_folder_iam_member" "group_roles" {
-  for_each = var.group_folder_roles
+module "folder_group_roles" {
+  source = "../modules/folder_iam_member"
 
-  folder = var.folder_id
-  role   = each.value
-  member = "group:${var.group_email}"
+  folder_id = var.folder_id
+  member    = "group:${var.group_email}"
+  roles     = var.group_folder_roles
 }
 ```
 
 ### Project-level service account
 
 ```hcl
-resource "google_project_iam_member" "service_account_roles" {
-  for_each = var.service_account_project_roles
+module "project_service_account_roles" {
+  source = "../modules/project_iam_member"
 
-  project = var.project_id
-  role    = each.value
-  member  = "serviceAccount:${var.service_account_email}"
+  project_id = var.project_id
+  member     = "serviceAccount:${var.service_account_email}"
+  roles      = var.service_account_project_roles
 }
 ```
 
