@@ -12,6 +12,7 @@ group_folder_roles = [
 service_account_email = "workflow-dev@mock-app-dev.iam.gserviceaccount.com"
 
 service_account_project_roles = [
+  "roles/testing.test",
   "roles/viewer",
   "roles/artifactregistry.reader",
   "roles/storage.objectViewer",
