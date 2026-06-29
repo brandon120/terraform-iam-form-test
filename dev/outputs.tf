@@ -1,9 +1,15 @@
-output "folder_group_assignments" {
-  description = "Folder-level IAM assignments for the mock group."
-  value       = module.folder_group_roles.assignments
+output "folder_iam_assignments" {
+  description = "Folder-level IAM assignments keyed by member label."
+  value = {
+    for key, mod in module.folder_iam :
+    key => mod.assignments
+  }
 }
 
-output "project_service_account_assignments" {
-  description = "Project-level IAM assignments for the mock service account."
-  value       = module.project_service_account_roles.assignments
+output "project_iam_assignments" {
+  description = "Project-level IAM assignments keyed by member label."
+  value = {
+    for key, mod in module.project_iam :
+    key => mod.assignments
+  }
 }

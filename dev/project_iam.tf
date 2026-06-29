@@ -1,7 +1,8 @@
-module "project_service_account_roles" {
-  source = "../modules/project_iam_member"
+module "project_iam" {
+  source   = "../modules/project_iam_member"
+  for_each = var.project_iam_members
 
   project_id = var.project_id
-  member     = "serviceAccount:${var.service_account_email}"
-  roles      = var.service_account_project_roles
+  member     = each.value.member
+  roles      = each.value.roles
 }

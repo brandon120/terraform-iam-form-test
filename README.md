@@ -36,8 +36,7 @@ terraform-iam-form-test/
 
 Each environment contains:
 
-- One mock Google group assigned additive IAM roles at the folder level
-- One mock service account assigned additive IAM roles at the project level
+- Data-driven IAM member bindings via `for_each` over map variables
 - Dummy project IDs and folder IDs
 - No remote backend
 - No real credentials
@@ -45,27 +44,50 @@ Each environment contains:
 
 ## Existing IAM patterns
 
-### Folder-level group
+Both folder-level and project-level bindings use additive IAM member
+resources driven by a shared map variable.
+
+### Folder-level bindings
 
 ```hcl
-module "folder_group_roles" {
-  source = "../modules/folder_iam_member"
+module "folder_iam" {
+  source   = "../modules/folder_iam_member"
+  for_each = var.folder_iam_members
 
   folder_id = var.folder_id
-  member    = "group:${var.group_email}"
-  roles     = var.group_folder_roles
+  member    = each.value.member
+  roles     = each.value.roles
 }
 ```
 
-### Project-level service account
+### Project-level bindings
 
 ```hcl
-module "project_service_account_roles" {
-  source = "../modules/project_iam_member"
+module "project_iam" {
+  source   = "../modules/project_iam_member"
+  for_each = var.project_iam_members
 
   project_id = var.project_id
-  member     = "serviceAccount:${var.service_account_email}"
-  roles      = var.service_account_project_roles
+  member     = each.value.member
+  roles      = each.value.roles
+}
+```
+
+### Adding a new IAM member
+
+Add an entry to the appropriate map in `terraform.tfvars`:
+
+```hcl
+folder_iam_members = {
+  group_roles = {
+    member = "group:platform@example.com"
+    roles  = ["roles/browser", "roles/logging.viewer"]
+  }
+  # Add new members here — no new module blocks or variables needed.
+  new_group_roles = {
+    member = "group:new-team@example.com"
+    roles  = ["roles/browser"]
+  }
 }
 ```
 
@@ -82,6 +104,7 @@ Folder group:
 - `roles/browser`
 - `roles/logging.viewer`
 - `roles/monitoring.viewer`
+- `roles/editrole.test`
 
 Project service account:
 
@@ -92,19 +115,19 @@ Project service account:
 
 ### Test
 
-Folder group:
+Folder members:
 
-- `test-platform@example.com`
-- `roles/browser`
-- `roles/logging.viewer`
-- `roles/monitoring.viewer`
+- `test-platform@example.com` — `roles/browser`, `roles/logging.viewer`, `roles/monitoring.viewer`
+- `test-qa@example.com` — `roles/browser`, `roles/resourcemanager.folderViewer`
+- `auditor.test@example.com` — `roles/browser`, `roles/logging.privateLogViewer`
+- `test-security@example.com` — `roles/browser`, `roles/resourcemanager.folderViewer`, `roles/iam.securityReviewer`
 
-Project service account:
+Project members:
 
-- `workflow-test@mock-app-test.iam.gserviceaccount.com`
-- `roles/viewer`
-- `roles/artifactregistry.reader`
-- `roles/storage.objectViewer`
+- `workflow-test@mock-app-test.iam.gserviceaccount.com` — `roles/viewer`, `roles/artifactregistry.reader`, `roles/storage.objectViewer`
+- `ci-test@mock-app-test.iam.gserviceaccount.com` — `roles/logging.logWriter`, `roles/monitoring.metricWriter`
+- `test-developers@example.com` — `roles/viewer`, `roles/cloudbuild.builds.viewer`
+- `test-ops@example.com` — `roles/viewer`, `roles/logging.viewer`, `roles/monitoring.viewer`
 
 ## Validation
 

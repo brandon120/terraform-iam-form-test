@@ -8,22 +8,20 @@ variable "folder_id" {
   type        = string
 }
 
-variable "group_email" {
-  description = "Mock Google group receiving folder-level IAM roles."
-  type        = string
+variable "folder_iam_members" {
+  description = "Map of folder-level IAM member bindings keyed by a descriptive label."
+  type = map(object({
+    member = string
+    roles  = set(string)
+  }))
+  default = {}
 }
 
-variable "group_folder_roles" {
-  description = "Folder-level IAM roles assigned to the mock Google group."
-  type        = set(string)
-}
-
-variable "service_account_email" {
-  description = "Mock service account receiving project-level IAM roles."
-  type        = string
-}
-
-variable "service_account_project_roles" {
-  description = "Project-level IAM roles assigned to the mock service account."
-  type        = set(string)
+variable "project_iam_members" {
+  description = "Map of project-level IAM member bindings keyed by a descriptive label."
+  type = map(object({
+    member = string
+    roles  = set(string)
+  }))
+  default = {}
 }
