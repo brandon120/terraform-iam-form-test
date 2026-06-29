@@ -1,7 +1,8 @@
-module "folder_group_roles" {
-  source = "../modules/folder_iam_member"
+module "folder_iam" {
+  source   = "../modules/folder_iam_member"
+  for_each = var.folder_iam_members
 
   folder_id = var.folder_id
-  member    = "group:${var.group_email}"
-  roles     = var.group_folder_roles
+  member    = each.value.member
+  roles     = each.value.roles
 }
