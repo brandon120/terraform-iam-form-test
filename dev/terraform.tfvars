@@ -15,5 +15,6 @@ service_account_email = "workflow-dev@mock-app-dev.iam.gserviceaccount.com"
 service_account_project_roles = [
   "roles/viewer",
   "roles/artifactregistry.reader",
+  "Roles/testing.test",
   "roles/storage.objectViewer",
 ]
